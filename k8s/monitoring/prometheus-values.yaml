@@ -1,0 +1,19 @@
+# helm install prometheus prometheus-community/prometheus -n monitoring -f k8s/monitoring/prometheus-values.yaml
+# Prometheus liviano: solo servidor + kube-state-metrics (estado de pods) + cAdvisor del kubelet (CPU/memoria por pod).
+alertmanager:
+  enabled: false
+prometheus-pushgateway:
+  enabled: false
+prometheus-node-exporter:
+  enabled: false
+kube-state-metrics:
+  enabled: true
+server:
+  retention: 2d
+  persistentVolume:
+    enabled: false
+  global:
+    scrape_interval: 30s
+  resources:
+    requests: { cpu: 100m, memory: 400Mi }
+    limits: { memory: 900Mi }

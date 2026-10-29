@@ -1,0 +1,66 @@
+# Portal WordPress: PVC para wp-content + Deployment + Service LoadBalancer.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-content
+  namespace: wordpress
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: wordpress
+  labels: { app: wordpress, portal: wordpress, tier: app }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: wordpress }
+  template:
+    metadata:
+      labels: { app: wordpress, portal: wordpress, tier: app }
+    spec:
+      containers:
+        - name: wordpress
+          image: wordpress:6-apache
+          ports:
+            - containerPort: 80
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: wordpress-db.wordpress.svc.cluster.local:3306
+            - name: WORDPRESS_DB_NAME
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: MARIADB_DATABASE } }
+            - name: WORDPRESS_DB_USER
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: MARIADB_USER } }
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: wordpress-db, key: MARIADB_PASSWORD } }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 768Mi }
+          readinessProbe:
+            tcpSocket: { port: 80 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - { name: content, mountPath: /var/www/html/wp-content }
+      volumes:
+        - name: content
+          persistentVolumeClaim: { claimName: wordpress-content }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: wordpress
+spec:
+  type: LoadBalancer
+  selector: { app: wordpress }
+  ports:
+    - port: 80
+      targetPort: 80

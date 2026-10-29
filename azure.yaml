@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+# Solo se usa "azd provision" (AKS + ACR + Managed Grafana + Prometheus) y "azd down".
+# Los portales se despliegan con kubectl desde k8s/ (ver README).
+name: lab6-aks
+metadata:
+    template: aks-app-template@0.0.1-beta
+infra:
+    provider: bicep
+    path: infra
+    module: main

@@ -1,0 +1,79 @@
+# Portal PrestaShop. /var/www/html va en un PVC; un initContainer lo llena con los archivos de la imagen
+# la primera vez. Asi, tras reiniciar el pod la tienda ya esta instalada y no se reinstala sobre la BD.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prestashop-www
+  namespace: prestashop
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prestashop
+  namespace: prestashop
+  labels: { app: prestashop, portal: prestashop, tier: app }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: prestashop }
+  template:
+    metadata:
+      labels: { app: prestashop, portal: prestashop, tier: app }
+    spec:
+      initContainers:
+        - name: seed-www
+          image: prestashop/prestashop:8.1
+          command: ["sh", "-c", "if [ ! -f /seed/index.php ]; then cp -a /var/www/html/. /seed/; fi"]
+          volumeMounts:
+            - { name: www, mountPath: /seed }
+      containers:
+        - name: prestashop
+          image: prestashop/prestashop:8.1
+          ports:
+            - containerPort: 80
+          env:
+            - name: DB_SERVER
+              value: prestashop-db.prestashop.svc.cluster.local
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: prestashop-db, key: MARIADB_DATABASE } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: prestashop-db, key: MARIADB_USER } }
+            - name: DB_PASSWD
+              valueFrom: { secretKeyRef: { name: prestashop-db, key: MARIADB_PASSWORD } }
+            - name: PS_INSTALL_AUTO
+              value: "1"
+            - name: PS_DOMAIN                  # IP publica del Service; la fija scripts/desplegar.ps1
+              valueFrom: { configMapKeyRef: { name: prestashop-site, key: PS_DOMAIN } }
+            - name: PS_FOLDER_ADMIN
+              value: admin_lab6
+            - name: PS_FOLDER_INSTALL
+              value: install_lab6
+            - name: ADMIN_MAIL
+              valueFrom: { secretKeyRef: { name: prestashop-admin, key: ADMIN_MAIL } }
+            - name: ADMIN_PASSWD
+              valueFrom: { secretKeyRef: { name: prestashop-admin, key: ADMIN_PASSWD } }
+            - name: PS_LANGUAGE
+              value: es
+            - name: PS_COUNTRY
+              value: CO
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits: { memory: 1536Mi }
+          readinessProbe:
+            tcpSocket: { port: 80 }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          volumeMounts:
+            - { name: www, mountPath: /var/www/html }
+      volumes:
+        - name: www
+          persistentVolumeClaim: { claimName: prestashop-www }

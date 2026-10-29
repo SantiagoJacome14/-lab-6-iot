@@ -1,0 +1,60 @@
+# Base de datos propia de PrestaShop (distinta a la de WordPress): PVC + Deployment (MariaDB) + Service ClusterIP.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prestashop-db-data
+  namespace: prestashop
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prestashop-db
+  namespace: prestashop
+  labels: { app: prestashop-db, portal: prestashop, tier: db }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: prestashop-db }
+  template:
+    metadata:
+      labels: { app: prestashop-db, portal: prestashop, tier: db }
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:10.11
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - secretRef: { name: prestashop-db }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: prestashop-db-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prestashop-db
+  namespace: prestashop
+spec:
+  type: ClusterIP
+  selector: { app: prestashop-db }
+  ports:
+    - port: 3306
+      targetPort: 3306

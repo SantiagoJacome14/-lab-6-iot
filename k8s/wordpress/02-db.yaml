@@ -1,0 +1,60 @@
+# Base de datos propia de WordPress: PVC + Deployment (MariaDB) + Service ClusterIP (sin IP publica).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wordpress-db-data
+  namespace: wordpress
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: managed-csi
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-db
+  namespace: wordpress
+  labels: { app: wordpress-db, portal: wordpress, tier: db }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }   # un PVC ReadWriteOnce no admite dos pods a la vez
+  selector:
+    matchLabels: { app: wordpress-db }
+  template:
+    metadata:
+      labels: { app: wordpress-db, portal: wordpress, tier: db }
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:10.11
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - secretRef: { name: wordpress-db }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: wordpress-db-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-db
+  namespace: wordpress
+spec:
+  type: ClusterIP
+  selector: { app: wordpress-db }
+  ports:
+    - port: 3306
+      targetPort: 3306

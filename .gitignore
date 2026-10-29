@@ -1,0 +1,7 @@
+.secrets.local.txt
+.azure/
+*.pem
+*.key
+.env
+informe/_*
+informe/node_modules/
