@@ -79,3 +79,9 @@ azd down --force --purge
 
 Elimina el resource group completo (cluster, ACR, Grafana, discos). Costo aproximado mientras corre: 4-6 USD/dia.
 
+
+## Estado final
+
+El entorno se creo el 2026-10-29 (~03:15 UTC) y se apago con `azd down --force --purge` a las 06:10 UTC del mismo dia;
+el grupo `rg-lab6` ya no existe. Las evidencias (capturas y salidas) quedaron en `evidencias/` y el guion de
+sustentacion en `SUSTENTACION.md`.

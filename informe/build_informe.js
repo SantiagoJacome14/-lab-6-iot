@@ -56,9 +56,12 @@ function anexo() {
     p("Capturas y salidas reales del clúster (29 de octubre de 2026). Los mismos archivos están en evidencias/ del repositorio."),
     ...figure("01_wordpress_pagina_antes.png", "Evidencia 01. WordPress (57.156.32.36): página de prueba \"Prueba Lab 6 – persistencia\" publicada antes del reinicio."),
     ...figure("02_prestashop_producto_antes.png", "Evidencia 02. PrestaShop (68.211.132.86): \"Producto Lab 6\" (ID 20, 25.000,00 €) en el catálogo antes del reinicio."),
-    ...figure("04_grafana_dashboard.png", "Evidencia 03. Grafana: pods Running de WordPress y PrestaShop, reinicios, CPU y memoria por pod; se distinguen los pods viejos y nuevos tras el reinicio.", 3.6),
-    ...textBlock("Evidencia 04. 03_reinicios.txt (reinicio de los dos Deployments y verificación)", "03_reinicios.txt"),
-    ...textBlock("Evidencia 05. 00_cluster.txt (clúster, pods, PVC y servicios)", "00_cluster.txt"),
+    ...figure("05_wordpress_despues.png", "Evidencia 03. WordPress después del reinicio del pod: la misma página sigue publicada (mismo contenido, misma IP).", 2.6),
+    ...figure("06_prestashop_admin_despues.png", "Evidencia 04. PrestaShop después del reinicio: Producto Lab 6 (ID 20, 25.000,00 €, activo) sigue en el catálogo.", 2.2),
+    ...figure("07_prestashop_tienda_despues.png", "Evidencia 05. PrestaShop después del reinicio: página pública del producto (68.211.132.86) con su nombre y precio; sin stock porque se creó con cantidad 0.", 3.0),
+    ...figure("04_grafana_dashboard.png", "Evidencia 06. Grafana: pods Running de WordPress y PrestaShop, reinicios, CPU y memoria por pod; se distinguen los pods viejos y nuevos tras el reinicio.", 3.6),
+    ...textBlock("Evidencia 07. 03_reinicios.txt (reinicio de los dos Deployments y verificación)", "03_reinicios.txt"),
+    ...textBlock("Evidencia 08. 00_cluster.txt (clúster, pods, PVC y servicios)", "00_cluster.txt"),
   ];
 }
 
@@ -96,7 +99,7 @@ const doc = new Document({
       kvTable([
         ["Decisión", "Dejar el entorno encendido solo hasta la entrega y la sustentación y luego ejecutar azd down --force --purge, que elimina el grupo de recursos rg-lab6 completo (clúster, registro, discos y direcciones IP). No es un clúster compartido, así que hay que apagarlo."],
         ["Costo estimado", "Aprox. 5 a 7 USD por día (2 nodos D2ds_v4 de pago por uso, discos, balanceadores e IP públicas), con tarifas públicas; el valor real se confirma en Azure Cost Management. El nivel Free del plano de control de AKS no cobra. Se usó crédito de Azure for Students."],
-        ["Tiempo encendido", "Creado el 29-oct-2026 hacia las 03:15 UTC. La fecha de apagado se anota en el README tras ejecutar azd down."],
+        ["Tiempo encendido", process.env.APAGADO || "Creado el 29-oct-2026 hacia las 03:15 UTC."],
       ]),
 
       h1("5. Qué falló"),
