@@ -1,0 +1,61 @@
+== Cluster y recursos: 2026-10-29T06:03:33Z
+
+--- az aks show (region, version, nodos)
+Region        K8s    Tier    Nodos    Vm
+------------  -----  ------  -------  ----------------
+chilecentral  1.36   Free    2        Standard_D2ds_v4
+
+--- kubectl get nodes
+NAME                                 STATUS   ROLES    AGE    VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION             CONTAINER-RUNTIME
+aks-systempool-42111225-vmss000000   Ready    <none>   168m   v1.36.4   10.224.0.4    <none>        Ubuntu 24.04.5 LTS   6.8.0-1071-azure (amd64)   containerd://2.3.7-3
+aks-systempool-42111225-vmss000001   Ready    <none>   168m   v1.36.4   10.224.0.5    <none>        Ubuntu 24.04.5 LTS   6.8.0-1071-azure (amd64)   containerd://2.3.7-3
+
+--- namespace wordpress
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/wordpress-7b88d8658-lfq76       1/1     Running   0          5m47s
+pod/wordpress-db-849cb689f7-2m2g6   1/1     Running   0          165m
+
+NAME                                      STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/wordpress-content   Bound    pvc-c09acf8b-c0fa-4cbc-b1f2-f0b3844c4f15   5Gi        RWO            managed-csi    <unset>                 164m
+persistentvolumeclaim/wordpress-db-data   Bound    pvc-7ba028f9-e350-499c-95c3-a413ebef3e68   5Gi        RWO            managed-csi    <unset>                 165m
+
+NAME                   TYPE           CLUSTER-IP    EXTERNAL-IP    PORT(S)        AGE
+service/wordpress      LoadBalancer   10.0.38.51    57.156.32.36   80:30977/TCP   164m
+service/wordpress-db   ClusterIP      10.0.18.252   <none>         3306/TCP       165m
+
+--- namespace prestashop
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/prestashop-6bd7fb85c7-954bq     1/1     Running   0          5m46s
+pod/prestashop-db-f697ccc97-v65tf   1/1     Running   0          165m
+
+NAME                                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/prestashop-db-data   Bound    pvc-4fd5e17e-4130-4f6e-811d-19e5ee429a47   5Gi        RWO            managed-csi    <unset>                 165m
+persistentvolumeclaim/prestashop-www       Bound    pvc-a99ce1c1-fe5d-460f-91e5-c77604123956   5Gi        RWO            managed-csi    <unset>                 164m
+
+NAME                    TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+service/prestashop      LoadBalancer   10.0.79.178    68.211.132.86   80:30786/TCP   164m
+service/prestashop-db   ClusterIP      10.0.156.137   <none>          3306/TCP       165m
+
+--- namespace monitoring
+NAME                                                 READY   STATUS    RESTARTS   AGE
+pod/grafana-74f4767bc6-tp6cl                         2/2     Running   0          161m
+pod/prometheus-kube-state-metrics-86f6b846bf-f5fmf   1/1     Running   0          162m
+pod/prometheus-server-58fc9cffb6-xx5n7               2/2     Running   0          162m
+
+NAME                                    TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+service/grafana                         ClusterIP   10.0.7.45     <none>        80/TCP     161m
+service/prometheus-kube-state-metrics   ClusterIP   10.0.95.193   <none>        8080/TCP   162m
+service/prometheus-server               ClusterIP   10.0.37.223   <none>        80/TCP     162m
+
+--- Secrets (solo nombres, sin valores)
+monitoring    grafana-admin                  Opaque   2      162m
+prestashop    prestashop-admin               Opaque   2      165m
+prestashop    prestashop-db                  Opaque   4      165m
+wordpress     wordpress-db                   Opaque   4      165m
+
+--- Servicios por tipo (las BD son ClusterIP, sin EXTERNAL-IP)
+NAMESPACE     NAME                               TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)         AGE
+prestashop    prestashop                         LoadBalancer   10.0.79.178    68.211.132.86   80:30786/TCP    164m
+prestashop    prestashop-db                      ClusterIP      10.0.156.137   <none>          3306/TCP        165m
+wordpress     wordpress                          LoadBalancer   10.0.38.51     57.156.32.36    80:30977/TCP    164m
+wordpress     wordpress-db                       ClusterIP      10.0.18.252    <none>          3306/TCP        165m
