@@ -93,9 +93,4 @@ $wp = kubectl -n wordpress get svc wordpress -o jsonpath="{.status.loadBalancer.
 Write-Host "WordPress:  http://$wp/"
 Write-Host "PrestaShop: http://$ip/   (admin en http://$ip/admin_lab6 ; clave en .secrets.local.txt)"
 K get "pods,svc" -n monitoring
-$gf = ""
-for ($i = 0; $i -lt 60 -and -not $gf; $i++) {
-    $gf = Q -n monitoring get svc grafana -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
-    if (-not $gf) { Start-Sleep 5 }
-}
-Write-Host "Grafana:    http://$gf/   (usuario admin; clave en .secrets.local.txt) -> dashboard 'Lab 6 - WordPress y PrestaShop en AKS'"
+Write-Host "Grafana: kubectl -n monitoring port-forward svc/grafana 3000:80  ->  http://localhost:3000  (usuario admin; clave en .secrets.local.txt) -> dashboard Lab 6"

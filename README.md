@@ -68,7 +68,7 @@ La pagina creada en WordPress y el producto creado en PrestaShop siguen ahi (viv
 
 ## Grafana
 
-`azd env get-value AZURE_GRAFANA_ENDPOINT` da la URL. Dashboard: *Kubernetes / Compute Resources / Namespace (Pods)*
+`kubectl -n monitoring port-forward svc/grafana 3000:80` y abrir http://localhost:3000 (usuario `admin`, clave en `.secrets.local.txt`). Dashboard: *Kubernetes / Compute Resources / Namespace (Pods)*
 filtrando `wordpress` y `prestashop`.
 
 ## Apagado

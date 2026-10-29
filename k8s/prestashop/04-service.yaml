@@ -6,6 +6,9 @@ metadata:
   namespace: prestashop
 spec:
   type: LoadBalancer
+  # Local conserva la IP real del cliente: PrestaShop liga la sesion del admin a la IP y, con la IP
+  # de cada nodo (SNAT), la marcaba como "comprometida" y devolvia al login.
+  externalTrafficPolicy: Local
   selector: { app: prestashop }
   ports:
     - port: 80

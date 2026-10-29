@@ -5,8 +5,10 @@ admin:
   existingSecret: grafana-admin
   userKey: admin-user
   passwordKey: admin-password
+# ClusterIP: Azure for Students permite solo 3 IP publicas por region y ya las usan los 2 portales + la salida
+# del cluster. Grafana se abre con:  kubectl -n monitoring port-forward svc/grafana 3000:80
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
 persistence:
   enabled: false

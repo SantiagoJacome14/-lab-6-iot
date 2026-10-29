@@ -1,0 +1,52 @@
+== Reinicio de los portales: 2026-10-29T05:57:49Z
+
+--- ANTES: pods y BD
+NAME                            READY   STATUS    RESTARTS   AGE
+wordpress-66d967684-8qscg       1/1     Running   0          158m
+wordpress-db-849cb689f7-2m2g6   1/1     Running   0          159m
+NAME                            READY   STATUS    RESTARTS   AGE
+prestashop-6888856d8b-xjsfz     1/1     Running   0          158m
+prestashop-db-f697ccc97-v65tf   1/1     Running   0          159m
+
+[wordpress-db] paginas:
+ID	post_title	post_status
+3	Política de privacidad	draft
+2	Página de ejemplo	publish
+6	Prueba Lab 6 - persistencia	publish
+[prestashop-db] producto:
+id_product	name	price	active
+20	Producto Lab 6	25000.000000	1
+
+--- REINICIO
+deployment.apps/wordpress restarted
+deployment.apps/prestashop restarted
+Waiting for deployment "wordpress" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "wordpress" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "wordpress" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "wordpress" rollout to finish: 0 of 1 updated replicas are available...
+deployment "wordpress" successfully rolled out
+Waiting for deployment "prestashop" rollout to finish: 0 of 1 updated replicas are available...
+deployment "prestashop" successfully rolled out
+
+--- DESPUES: pods
+NAME                            READY   STATUS    RESTARTS   AGE
+wordpress-7b88d8658-lfq76       1/1     Running   0          34s
+wordpress-db-849cb689f7-2m2g6   1/1     Running   0          160m
+NAME                            READY   STATUS    RESTARTS   AGE
+prestashop-6bd7fb85c7-954bq     1/1     Running   0          33s
+prestashop-db-f697ccc97-v65tf   1/1     Running   0          160m
+
+--- DESPUES: el contenido sigue (consulta HTTP publica)
+WordPress /prueba-lab-6-persistencia/ -> HTTP 200
+<title>Prueba Lab 6 &#8211; persistencia &#8211; Lab 6 UNAB
+PrestaShop /es/inicio/20-producto-lab-6.html -> HTTP 200
+<title>Producto Lab 6
+25.000,00 €
+[wordpress-db] paginas:
+ID	post_title	post_status
+3	Política de privacidad	draft
+2	Página de ejemplo	publish
+6	Prueba Lab 6 - persistencia	publish
+[prestashop-db] producto:
+id_product	name	price	active
+20	Producto Lab 6	25000.000000	1
